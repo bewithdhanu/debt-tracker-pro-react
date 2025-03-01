@@ -1,5 +1,7 @@
 # Debt Tracker Pro
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/debt-tracker-pro-react/deploy-status)](https://app.netlify.com/sites/debt-tracker-pro-react/deploys)
+
 📊 A modern React-based debt management application for tracking personal and business debts.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
