@@ -72,7 +72,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
         fetchDebts();
       }
     }
-  }, [user.id, pagination.currentPage, sortConfig, searchTerm, debtId]);
+  }, [user.id, debtId, pagination.currentPage, sortConfig, searchTerm]);
 
   // Check URL for addNew parameter and preselected contact
   useEffect(() => {
@@ -121,6 +121,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
         };
         setSelectedDebt(transformedDebt);
         setShowActivities(true);
+        setShowForm(false);
       }
     } catch (error) {
       console.error('Error fetching debt:', error);
@@ -269,14 +270,13 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
     setSelectedDebt(debt);
     setShowActivities(true);
     setShowForm(false);
+    navigate(`/debts/${debt.id}`);
   };
 
   const handleBackFromActivities = () => {
     setShowActivities(false);
     setSelectedDebt(null);
     navigate('/debts');
-    // Refresh debts to get updated status
-    fetchDebts();
   };
 
   const handleCancelForm = () => {

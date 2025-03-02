@@ -51,7 +51,17 @@ const AppContent = () => {
           <Debts user={user} />
         </Layout>
       } />
+      <Route path="/debts/:debtId" element={
+        <Layout user={user} activePage="debts">
+          <Debts user={user} />
+        </Layout>
+      } />
       <Route path="/contacts" element={
+        <Layout user={user} activePage="contacts">
+          <Contacts user={user} />
+        </Layout>
+      } />
+      <Route path="/contacts/:contactId" element={
         <Layout user={user} activePage="contacts">
           <Contacts user={user} />
         </Layout>

@@ -63,9 +63,13 @@ const Contacts: React.FC<ContactsProps> = ({ user }) => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetchContacts();
+      if (contactId) {
+        fetchSingleContact(contactId);
+      } else {
+        fetchContacts();
+      }
     }
-  }, [user.id, pagination.currentPage, sortConfig, searchTerm]);
+  }, [user.id, contactId, pagination.currentPage, sortConfig, searchTerm]);
 
   // Check URL for addNew parameter
   useEffect(() => {
@@ -134,6 +138,31 @@ const Contacts: React.FC<ContactsProps> = ({ user }) => {
     } catch (error) {
       console.error('Error fetching contacts:', error);
       toast.error('Failed to load contacts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSingleContact = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setSelectedContact(data);
+        setShowDetails(true);
+        setShowForm(false);
+      }
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      toast.error('Failed to load contact details');
+      navigate('/contacts');
     } finally {
       setIsLoading(false);
     }
@@ -261,15 +290,15 @@ const Contacts: React.FC<ContactsProps> = ({ user }) => {
 
   const handleViewContactDetails = (contact: Contact) => {
     setSelectedContact(contact);
-    navigate(`/contacts/${contact.id}`);
+    setShowDetails(true);
     setShowForm(false);
+    navigate(`/contacts/${contact.id}`);
   };
 
   const handleBackFromDetails = () => {
+    setShowDetails(false);
     setSelectedContact(null);
     navigate('/contacts');
-    // Refresh contacts to get any updates
-    fetchContacts();
   };
 
   return (
