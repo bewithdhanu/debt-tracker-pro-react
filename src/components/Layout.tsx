@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import { User } from '../types/auth';
-import { LogOut, Menu, X, Home, Users, DollarSign } from 'lucide-react';
+import { LogOut, Menu, X, Home, Users, DollarSign, Settings, Receipt } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 interface LayoutProps {
   user: User;
   children: ReactNode;
-  activePage: 'dashboard' | 'debts' | 'contacts';
+  activePage: 'dashboard' | 'debts' | 'contacts' | 'profile' | 'transactions';
 }
 
 const Layout: React.FC<LayoutProps> = ({ user, children, activePage }) => {
@@ -96,11 +96,25 @@ const Layout: React.FC<LayoutProps> = ({ user, children, activePage }) => {
               isActive={activePage === 'contacts'}
               onClick={() => setIsMobileMenuOpen(false)}
             />
+            <NavLink
+              to="/transactions"
+              icon={<Receipt size={18} />}
+              text="Transactions"
+              isActive={activePage === 'transactions'}
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
 
             <div className="mt-auto pt-4">
+              <NavLink
+                to="/profile"
+                icon={<Settings size={18} />}
+                text="Profile & Settings"
+                isActive={activePage === 'profile'}
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors duration-300 text-sm"
+                className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg transition-colors duration-300 text-sm mt-2"
               >
                 <LogOut size={16} />
                 Sign Out
@@ -146,12 +160,24 @@ const Layout: React.FC<LayoutProps> = ({ user, children, activePage }) => {
               text="Contacts"
               isActive={activePage === 'contacts'}
             />
+            <NavLink
+              to="/transactions"
+              icon={<Receipt size={18} />}
+              text="Transactions"
+              isActive={activePage === 'transactions'}
+            />
           </nav>
 
           <div className="mt-auto pt-4">
+            <NavLink
+              to="/profile"
+              icon={<Settings size={18} />}
+              text="Profile & Settings"
+              isActive={activePage === 'profile'}
+            />
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-300 text-sm"
+              className="w-full flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors duration-300 text-sm mt-2"
             >
               <LogOut size={16} />
               Sign Out

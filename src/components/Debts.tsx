@@ -7,12 +7,15 @@ import DebtForm from './DebtForm';
 import DebtActivities from './DebtActivities';
 import { Plus, Search, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useParams, useNavigate } from 'react-router-dom';
 
 interface DebtsProps {
   user: User;
 }
 
 const Debts: React.FC<DebtsProps> = ({ user }) => {
+  const { debtId } = useParams();
+  const navigate = useNavigate();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +40,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   });
   const [showActivities, setShowActivities] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [preselectedContact, setPreselectedContact] = useState<{id: string, name: string} | null>(null);
 
   // Handle responsive view mode changes
   useEffect(() => {
@@ -60,9 +64,70 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
 
   useEffect(() => {
     if (user && user.id) {
-      fetchDebts();
+      if (debtId) {
+        fetchSingleDebt(debtId);
+      } else {
+        fetchDebts();
+      }
     }
-  }, [user.id, pagination.currentPage, sortConfig, searchTerm]);
+  }, [user.id, pagination.currentPage, sortConfig, searchTerm, debtId]);
+
+  // Check URL for addNew parameter and preselected contact
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Check if we have a preselected contact from sessionStorage
+    const contactId = sessionStorage.getItem('preselectedContactId');
+    const contactName = sessionStorage.getItem('preselectedContactName');
+    
+    if (contactId && contactName) {
+      setPreselectedContact({
+        id: contactId,
+        name: contactName
+      });
+      
+      // Clear the sessionStorage after retrieving the values
+      sessionStorage.removeItem('preselectedContactId');
+      sessionStorage.removeItem('preselectedContactName');
+    }
+    
+    if (urlParams.get('addNew') === 'true') {
+      handleAddDebt();
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const fetchSingleDebt = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('debts')
+        .select(`
+          *,
+          contacts:contact_id (name)
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const transformedDebt = {
+          ...data,
+          contact_name: data.contacts?.name || 'Unknown Contact'
+        };
+        setSelectedDebt(transformedDebt);
+        setShowActivities(true);
+      }
+    } catch (error) {
+      console.error('Error fetching debt:', error);
+      toast.error('Failed to load debt details');
+      navigate('/debts');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchDebts = async () => {
     try {
@@ -207,6 +272,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const handleBackFromActivities = () => {
     setShowActivities(false);
     setSelectedDebt(null);
+    navigate('/debts');
     // Refresh debts to get updated status
     fetchDebts();
   };
@@ -214,6 +280,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentDebt(undefined);
+    setPreselectedContact(null);
   };
 
   const handleSubmitForm = async (formData: DebtFormData) => {
@@ -258,6 +325,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
       await fetchDebts();
       setShowForm(false);
       setCurrentDebt(undefined);
+      setPreselectedContact(null);
     } catch (error) {
       console.error('Error saving debt:', error);
       if (error instanceof Error) {
@@ -271,8 +339,6 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   };
 
   const handleDeleteDebt = async (debtId: string) => {
-    if (!confirm('Are you sure you want to delete this debt?')) return;
-
     try {
       const { error } = await supabase
         .from('debts')
@@ -307,7 +373,9 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
         <DebtActivities 
           user={user} 
           debt={selectedDebt} 
-          onBack={handleBackFromActivities} 
+          onBack={handleBackFromActivities}
+          onEditDebt={handleEditDebt}
+          onDeleteDebt={handleDeleteDebt}
         />
       ) : (
         <>
@@ -359,13 +427,18 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
               initialData={currentDebt}
               isSubmitting={isSubmitting}
               userId={user.id}
+              preselectedContact={preselectedContact}
             />
           ) : (
             <DebtList
               debts={debts}
               onEdit={handleEditDebt}
               onDelete={handleDeleteDebt}
-              onViewActivities={handleViewDebtActivities}
+              onViewActivities={(debt) => {
+                setSelectedDebt(debt);
+                setShowActivities(true);
+                navigate(`/debts/${debt.id}`);
+              }}
               isLoading={isLoading}
               viewMode={viewMode}
               searchTerm={searchTerm}

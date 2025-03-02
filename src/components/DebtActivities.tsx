@@ -7,14 +7,17 @@ import DebtForm from './DebtForm';
 import NotesActivityForm from './NotesActivityForm';
 import InterestActivityForm from './InterestActivityForm';
 import ActivityList from './ActivityList';
-import { ArrowLeft, Plus, FileText, TrendingUp, Calendar, DollarSign, TrendingDown, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, TrendingUp, Calendar, DollarSign, TrendingDown, TrendingUp as TrendingUpIcon, ChevronLeft, Edit, Trash2, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getDaysInMonth, getDate } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface DebtActivitiesProps {
   user: User;
   debt: Debt;
   onBack: () => void;
+  onEditDebt: (debt: Debt) => void;
+  onDeleteDebt: (debtId: string) => void;
 }
 
 interface PendingInterestInfo {
@@ -29,7 +32,8 @@ interface PendingInterestInfo {
   lastPaymentDate: Date | null;
 }
 
-const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack }) => {
+const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack, onEditDebt, onDeleteDebt }) => {
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -39,6 +43,7 @@ const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack }) =
   const [editingDebt, setEditingDebt] = useState(false);
   const [currentDebt, setCurrentDebt] = useState<Debt>(debt);
   const [pendingInterest, setPendingInterest] = useState<PendingInterestInfo | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (debt && debt.id) {
@@ -479,6 +484,35 @@ const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack }) =
     return num.toFixed(2);
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    try {
+      if (onDeleteDebt && typeof onDeleteDebt === 'function') {
+        onDeleteDebt(debt.id);
+        setShowDeleteConfirm(false);
+        onBack(); // Navigate back after successful deletion
+      } else {
+        throw new Error('Delete function not provided');
+      }
+    } catch (error) {
+      console.error('Error deleting debt:', error);
+      toast.error('Failed to delete debt');
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+  };
+
+  const handleViewContact = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/contacts/${currentDebt.contact_id}`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
@@ -496,147 +530,207 @@ const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack }) =
 
       {/* Debt Details Section */}
       <div className="bg-gray-800 rounded-lg p-4">
-        {editingDebt ? (
-          <DebtForm
-            onSubmit={handleUpdateDebt}
-            onCancel={handleCancelEditDebt}
-            initialData={currentDebt}
-            isSubmitting={isSubmitting}
-            userId={user.id}
-          />
-        ) : (
-          <div className="space-y-4">
-            <div className="flex justify-between items-start">
-              <h3 className="text-base font-medium text-white">
-                Debt Information
-                {currentDebt.status === 'completed' && (
-                  <span className="ml-2 text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded-full">
-                    Completed
-                  </span>
-                )}
-              </h3>
-              <button
-                onClick={handleEditDebt}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-xs"
-              >
-                Edit Debt
-              </button>
+        <div className="flex items-start justify-between mb-3">
+          <h3 className="text-base font-medium text-white">
+            Debt Information
+            {currentDebt.status === 'completed' && (
+              <span className="ml-2 text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded-full">
+                Completed
+              </span>
+            )}
+          </h3>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleEditDebt}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-xs flex items-center"
+            >
+              <Edit size={14} className="mr-1.5" />
+              Edit Debt
+            </button>
+            <button
+              onClick={handleDeleteClick}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors text-xs flex items-center"
+            >
+              <Trash2 size={14} className="mr-1.5" />
+              Delete
+            </button>
+          </div>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-4 max-w-sm w-full mx-4">
+              <h3 className="text-lg font-medium text-white mb-2">Confirm Delete</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                Are you sure you want to delete this debt? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors text-xs"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Debt Modal */}
+        {editingDebt && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-4 max-w-2xl w-full mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-white">Edit Debt</h3>
+                <button
+                  onClick={handleCancelEditDebt}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <DebtForm
+                onSubmit={handleUpdateDebt}
+                onCancel={handleCancelEditDebt}
+                initialData={currentDebt}
+                isSubmitting={isSubmitting}
+                userId={user.id}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Contact</p>
+              <div className="flex items-center">
+                <button 
+                  onClick={handleViewContact}
+                  className="text-white text-sm font-medium hover:text-blue-400 transition-colors flex items-center"
+                >
+                  {currentDebt.contact_name}
+                  <ExternalLink size={14} className="ml-1.5 text-gray-400" />
+                </button>
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Contact</p>
-                <p className="text-white text-sm font-medium">{currentDebt.contact_name}</p>
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Type</p>
-                <p className={`text-sm font-medium ${currentDebt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}`}>
-                  {currentDebt.type}
-                </p>
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Principal Amount</p>
-                <p className="text-white text-sm font-medium">{formatCurrency(currentDebt.principal_amount)}</p>
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Interest Rate</p>
-                <p className="text-white text-sm font-medium">{currentDebt.interest_rate}% per month</p>
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Debt Date</p>
-                <p className="text-white text-sm font-medium">{formatDate(currentDebt.debt_date)}</p>
-              </div>
-              
-              <div>
-                <p className="text-gray-400 text-xs mb-1">Status</p>
-                <p className={`text-sm font-medium ${currentDebt.status === 'completed' ? 'text-green-400' : 'text-blue-400'}`}>
-                  {currentDebt.status === 'completed' ? 'Completed' : 'Active'}
-                </p>
-              </div>
-              
-              {currentDebt.notes && (
-                <div className="col-span-1 md:col-span-2">
-                  <p className="text-gray-400 text-xs mb-1">Notes</p>
-                  <p className="text-white text-sm">{currentDebt.notes}</p>
-                </div>
-              )}
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Type</p>
+              <p className={`text-sm font-medium ${currentDebt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}`}>
+                {currentDebt.type}
+              </p>
             </div>
             
-            {/* Pending Interest Information - Only show for active debts */}
-            {currentDebt.status === 'active' && pendingInterest && (
-              <div className="mt-4 pt-4 border-t border-gray-700">
-                <h4 className="text-sm font-medium text-white mb-3">Pending Interest Information</h4>
-                
-                <div className="bg-gray-750 rounded-lg p-3 space-y-3">
-                  <div className="flex items-center">
-                    <Calendar size={16} className="text-blue-400 mr-2" />
-                    <div>
-                      <p className="text-gray-300 text-xs">Time Since Last Payment</p>
-                      <p className="text-white text-sm">
-                        {pendingInterest.exactMonths} months 
-                        {pendingInterest.exactDays > 0 && ` and ${pendingInterest.exactDays} days`}
-                      </p>
-                      {pendingInterest.lastPaymentDate && (
-                        <p className="text-gray-400 text-xs mt-1">
-                          Last payment: {formatDate(pendingInterest.lastPaymentDate.toISOString())}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="bg-gray-800 p-2 rounded-md">
-                      <div className="flex items-center mb-1">
-                        <DollarSign size={14} className="text-yellow-400 mr-1" />
-                        <p className="text-gray-300 text-xs">Exact Interest</p>
-                      </div>
-                      <p className="text-white text-sm font-medium">
-                        {formatCurrency(pendingInterest.exactInterest)}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        For {formatDecimal(pendingInterest.exactPeriod)} months
-                      </p>
-                    </div>
-                    
-                    <div className="bg-gray-800 p-2 rounded-md">
-                      <div className="flex items-center mb-1">
-                        <TrendingDown size={14} className="text-green-400 mr-1" />
-                        <p className="text-gray-300 text-xs">Round Down</p>
-                      </div>
-                      <p className="text-white text-sm font-medium">
-                        {formatCurrency(pendingInterest.roundDownInterest)}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        For {pendingInterest.roundDownMonths} months
-                      </p>
-                    </div>
-                    
-                    <div className="bg-gray-800 p-2 rounded-md">
-                      <div className="flex items-center mb-1">
-                        <TrendingUpIcon size={14} className="text-red-400 mr-1" />
-                        <p className="text-gray-300 text-xs">Round Up</p>
-                      </div>
-                      <p className="text-white text-sm font-medium">
-                        {formatCurrency(pendingInterest.roundUpInterest)}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        For {pendingInterest.roundUpMonths} months
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-xs text-gray-400 italic">
-                    Note: Interest calculations are based on the time elapsed since the last payment or debt start date.
-                  </p>
-                </div>
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Principal Amount</p>
+              <p className="text-white text-sm font-medium">{formatCurrency(currentDebt.principal_amount)}</p>
+            </div>
+            
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Interest Rate</p>
+              <p className="text-white text-sm font-medium">{currentDebt.interest_rate}% per month</p>
+            </div>
+            
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Debt Date</p>
+              <p className="text-white text-sm font-medium">{formatDate(currentDebt.debt_date)}</p>
+            </div>
+            
+            <div>
+              <p className="text-gray-400 text-xs mb-1">Status</p>
+              <p className={`text-sm font-medium ${currentDebt.status === 'completed' ? 'text-green-400' : 'text-blue-400'}`}>
+                {currentDebt.status === 'completed' ? 'Completed' : 'Active'}
+              </p>
+            </div>
+            
+            {currentDebt.notes && (
+              <div className="col-span-1 md:col-span-2">
+                <p className="text-gray-400 text-xs mb-1">Notes</p>
+                <p className="text-white text-sm">{currentDebt.notes}</p>
               </div>
             )}
           </div>
-        )}
+          
+          {/* Pending Interest Information - Only show for active debts */}
+          {currentDebt.status === 'active' && pendingInterest && (
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <h4 className="text-sm font-medium text-white mb-3">Pending Interest Information</h4>
+              
+              <div className="bg-gray-750 rounded-lg p-3 space-y-3">
+                <div className="flex items-center">
+                  <Calendar size={16} className="text-blue-400 mr-2" />
+                  <div>
+                    <p className="text-gray-300 text-xs">Time Since Last Payment</p>
+                    <p className="text-white text-sm">
+                      {pendingInterest.exactMonths} months 
+                      {pendingInterest.exactDays > 0 && ` and ${pendingInterest.exactDays} days`}
+                    </p>
+                    {pendingInterest.lastPaymentDate && (
+                      <p className="text-gray-400 text-xs mt-1">
+                        Last payment: {formatDate(pendingInterest.lastPaymentDate.toISOString())}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-gray-800 p-2 rounded-md">
+                    <div className="flex items-center mb-1">
+                      <DollarSign size={14} className="text-yellow-400 mr-1" />
+                      <p className="text-gray-300 text-xs">Exact Interest</p>
+                    </div>
+                    <p className="text-white text-sm font-medium">
+                      {formatCurrency(pendingInterest.exactInterest)}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      For {formatDecimal(pendingInterest.exactPeriod)} months
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gray-800 p-2 rounded-md">
+                    <div className="flex items-center mb-1">
+                      <TrendingDown size={14} className="text-green-400 mr-1" />
+                      <p className="text-gray-300 text-xs">Round Down</p>
+                    </div>
+                    <p className="text-white text-sm font-medium">
+                      {formatCurrency(pendingInterest.roundDownInterest)}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      For {pendingInterest.roundDownMonths} months
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gray-800 p-2 rounded-md">
+                    <div className="flex items-center mb-1">
+                      <TrendingUpIcon size={14} className="text-red-400 mr-1" />
+                      <p className="text-gray-300 text-xs">Round Up</p>
+                    </div>
+                    <p className="text-white text-sm font-medium">
+                      {formatCurrency(pendingInterest.roundUpInterest)}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      For {pendingInterest.roundUpMonths} months
+                    </p>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-400 italic">
+                  Note: Interest calculations are based on the time elapsed since the last payment or debt start date.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Activities Section */}

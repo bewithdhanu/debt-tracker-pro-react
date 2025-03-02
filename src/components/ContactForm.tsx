@@ -47,18 +47,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-base font-medium text-white">
-          {initialData ? 'Edit Contact' : 'Add New Contact'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="text-gray-400 hover:text-white"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

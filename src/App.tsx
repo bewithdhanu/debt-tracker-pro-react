@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 import DashboardHome from './components/DashboardHome';
 import Contacts from './components/Contacts';
 import Debts from './components/Debts';
+import UserProfile from './components/UserProfile';
+import Transactions from './components/Transactions';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -120,9 +122,32 @@ function App() {
                 <Debts user={authState.user} />
               </Layout>
             } />
+            <Route path="/debts/:debtId" element={
+              <Layout user={authState.user} activePage="debts">
+                <Debts user={authState.user} />
+              </Layout>
+            } />
             <Route path="/contacts" element={
               <Layout user={authState.user} activePage="contacts">
                 <Contacts user={authState.user} />
+              </Layout>
+            } />
+            <Route path="/contacts/:contactId" element={
+              <Layout user={authState.user} activePage="contacts">
+                <Contacts user={authState.user} />
+              </Layout>
+            } />
+            <Route path="/profile" element={
+              <Layout user={authState.user} activePage="profile">
+                <UserProfile 
+                  user={authState.user} 
+                  onBack={() => window.history.back()}
+                />
+              </Layout>
+            } />
+            <Route path="/transactions" element={
+              <Layout user={authState.user} activePage="transactions">
+                <Transactions user={authState.user} />
               </Layout>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />

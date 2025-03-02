@@ -11,6 +11,7 @@ interface DebtFormProps {
   initialData?: Debt;
   isSubmitting: boolean;
   userId: string;
+  preselectedContact?: { id: string; name: string } | null;
 }
 
 const DebtForm: React.FC<DebtFormProps> = ({
@@ -18,7 +19,8 @@ const DebtForm: React.FC<DebtFormProps> = ({
   onCancel,
   initialData,
   isSubmitting,
-  userId
+  userId,
+  preselectedContact
 }) => {
   const [formData, setFormData] = useState<DebtFormData>({
     contact_id: '',
@@ -62,8 +64,15 @@ const DebtForm: React.FC<DebtFormProps> = ({
           setSelectedContactName(contact.name);
         }
       }
+    } else if (preselectedContact) {
+      // If we have a preselected contact, set it
+      setFormData(prev => ({
+        ...prev,
+        contact_id: preselectedContact.id
+      }));
+      setSelectedContactName(preselectedContact.name);
     }
-  }, [initialData, contacts]);
+  }, [initialData, contacts, preselectedContact]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -193,18 +202,6 @@ const DebtForm: React.FC<DebtFormProps> = ({
 
   return (
     <div className="bg-gray-800 rounded-lg p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-base font-medium text-white">
-          {initialData ? 'Edit Debt' : 'Add New Debt'}
-        </h3>
-        <button
-          onClick={onCancel}
-          className="text-gray-400 hover:text-white"
-          aria-label="Close"
-        >
-          <X size={18} />
-        </button>
-      </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         {/* Grid for all form fields except Notes */}

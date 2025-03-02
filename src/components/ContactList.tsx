@@ -1,6 +1,6 @@
 import React from 'react';
 import { Contact } from '../types/contact';
-import { Edit, Trash2, Phone, MapPin, User, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { Edit, Trash2, Phone, MapPin, User, ChevronLeft, ChevronRight, ArrowUpDown, ExternalLink } from 'lucide-react';
 
 interface ContactListProps {
   contacts: Contact[];
@@ -19,6 +19,7 @@ interface ContactListProps {
     totalPages: number;
     onPageChange: (page: number) => void;
   };
+  onViewDetails: (contact: Contact) => void;
 }
 
 const ContactList: React.FC<ContactListProps> = ({
@@ -30,7 +31,8 @@ const ContactList: React.FC<ContactListProps> = ({
   searchTerm,
   onSort,
   sortConfig,
-  pagination
+  pagination,
+  onViewDetails
 }) => {
   const { currentPage, totalPages, onPageChange } = pagination;
   
@@ -77,24 +79,17 @@ const ContactList: React.FC<ContactListProps> = ({
           {contacts.map((contact) => (
             <div
               key={contact.id}
-              className="bg-gray-800 rounded-lg p-3 hover:bg-gray-750 transition-colors"
+              className="bg-gray-800 rounded-lg p-3 hover:bg-gray-750 transition-colors cursor-pointer"
+              onClick={() => onViewDetails(contact)}
             >
               <div className="flex justify-between items-start mb-1.5">
                 <h3 className="text-base font-medium text-white">{contact.name}</h3>
                 <div className="flex space-x-1.5">
                   <button
-                    onClick={() => onEdit(contact)}
                     className="text-gray-400 hover:text-blue-400 transition-colors"
-                    aria-label={`Edit ${contact.name}`}
+                    aria-label={`View ${contact.name} details`}
                   >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={() => onDelete(contact.id)}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
-                    aria-label={`Delete ${contact.name}`}
-                  >
-                    <Trash2 size={16} />
+                    <ExternalLink size={16} />
                   </button>
                 </div>
               </div>
@@ -185,9 +180,10 @@ const ContactList: React.FC<ContactListProps> = ({
             {contacts.map((contact, index) => (
               <tr 
                 key={contact.id} 
-                className={`bg-gray-800 border-b border-gray-700 hover:bg-gray-750 ${
+                className={`bg-gray-800 border-b border-gray-700 hover:bg-gray-750 cursor-pointer ${
                   index === contacts.length - 1 ? 'rounded-b-lg' : ''
                 }`}
+                onClick={() => onViewDetails(contact)}
               >
                 <td className="px-4 py-2.5 font-medium text-white">
                   {contact.name}
@@ -202,20 +198,12 @@ const ContactList: React.FC<ContactListProps> = ({
                   {contact.address || '-'}
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex justify-end">
                     <button
-                      onClick={() => onEdit(contact)}
                       className="text-gray-400 hover:text-blue-400 transition-colors"
-                      aria-label={`Edit ${contact.name}`}
+                      aria-label={`View ${contact.name} details`}
                     >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(contact.id)}
-                      className="text-gray-400 hover:text-red-400 transition-colors"
-                      aria-label={`Delete ${contact.name}`}
-                    >
-                      <Trash2 size={16} />
+                      <ExternalLink size={16} />
                     </button>
                   </div>
                 </td>

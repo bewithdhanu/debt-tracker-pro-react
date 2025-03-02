@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Contact, ContactFormData } from '../types/contact';
 import { User } from '../types/auth';
+import { Debt } from '../types/debt';
 import ContactForm from './ContactForm';
-import { ArrowLeft, Edit, Trash2, Phone, MapPin, User as UserIcon } from 'lucide-react';
+import DebtList from './DebtList';
+import { ArrowLeft, Edit, Trash2, Phone, MapPin, User as UserIcon, DollarSign, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface ContactDetailsProps {
   user: User;
@@ -21,10 +24,74 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({
   onEditContact,
   onDeleteContact,
 }) => {
+  const navigate = useNavigate();
   const [editingContact, setEditingContact] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isCheckingDebts, setIsCheckingDebts] = useState(false);
   const [linkedDebtsMessage, setLinkedDebtsMessage] = useState<string | null>(null);
+  const [relatedDebts, setRelatedDebts] = useState<Debt[]>([]);
+  const [isLoadingDebts, setIsLoadingDebts] = useState(true);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>(() => {
+    // Default to card view on mobile, table view on larger screens
+    return window.innerWidth < 768 ? 'card' : 'table';
+  });
+
+  // Handle responsive view mode changes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('card');
+      } else {
+        setViewMode('table');
+      }
+    };
+    
+    // Set initial view mode
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (contact && contact.id) {
+      fetchRelatedDebts();
+    }
+  }, [contact.id]);
+
+  const fetchRelatedDebts = async () => {
+    try {
+      setIsLoadingDebts(true);
+      
+      const { data, error } = await supabase
+        .from('debts')
+        .select(`
+          *,
+          contacts:contact_id (name)
+        `)
+        .eq('contact_id', contact.id)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform the data to include contact_name
+      const transformedData = data?.map(debt => ({
+        ...debt,
+        contact_name: debt.contacts?.name || 'Unknown Contact'
+      })) || [];
+      
+      setRelatedDebts(transformedData);
+    } catch (error) {
+      console.error('Error fetching related debts:', error);
+      toast.error('Failed to load related debts');
+    } finally {
+      setIsLoadingDebts(false);
+    }
+  };
 
   const handleEditClick = () => {
     setEditingContact(true);
@@ -98,6 +165,22 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({
       console.error('Error updating contact:', error);
       // Error will be shown by the parent component
     }
+  };
+
+  const handleViewDebtDetails = (debt: Debt) => {
+    navigate(`/debts/${debt.id}`);
+  };
+
+  const handleAddNewDebt = () => {
+    // Store the contact ID in sessionStorage to be used by the Debts component
+    sessionStorage.setItem('preselectedContactId', contact.id);
+    sessionStorage.setItem('preselectedContactName', contact.name);
+    // Navigate to the debts page with a query parameter to open the form
+    navigate('/debts?addNew=true');
+  };
+
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === 'card' ? 'table' : 'card');
   };
 
   return (
@@ -180,6 +263,42 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({
         </div>
       </div>
 
+      {/* Related Debts Section */}
+      <div className="bg-gray-800 rounded-lg p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center">
+            <DollarSign size={18} className="mr-2 text-blue-400" />
+            <h3 className="text-base font-medium text-white">
+              Related Debts
+            </h3>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={toggleViewMode}
+              className="flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-md transition-colors text-xs"
+              title={viewMode === 'card' ? 'Switch to table view' : 'Switch to card view'}
+            >
+              <ArrowUpDown size={14} />
+              {viewMode === 'card' ? 'Table' : 'Cards'}
+            </button>
+            <button
+              onClick={handleAddNewDebt}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-xs flex items-center"
+            >
+              Add New Debt
+            </button>
+          </div>
+        </div>
+
+        <DebtList
+          debts={relatedDebts}
+          onViewActivities={handleViewDebtDetails}
+          isLoading={isLoadingDebts}
+          viewMode={viewMode}
+          isCompact={true}
+        />
+      </div>
+
       {/* Linked Debts Modal */}
       {linkedDebtsMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -254,4 +373,4 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({
   );
 };
 
-export default ContactDetails; 
+export default ContactDetails;
