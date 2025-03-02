@@ -1,26 +1,31 @@
+// React and Routing
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+
+// Date Utilities
+import { format, addMonths, isBefore } from 'date-fns';
+
+// Icons
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  BadgeAlert,
+  BarChart4,
+  Calendar,
+  CalendarClock,
+  CircleDollarSign,
+  Clock,
+  DollarSign,
+  FileText,
+  Hourglass,
+  TrendingUp,
+  Users,
+  Wallet
+} from 'lucide-react';
+
+// Local Imports
 import { User } from '../types/auth';
 import { supabase } from '../lib/supabase';
-import { 
-  DollarSign, 
-  Users, 
-  TrendingUp, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Calendar, 
-  CheckCircle, 
-  AlertCircle, 
-  Clock, 
-  BarChart4, 
-  PieChart, 
-  CalendarClock,
-  BadgeAlert,
-  Wallet,
-  CircleDollarSign,
-  Hourglass
-} from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { format, addMonths, isBefore } from 'date-fns';
 import { useCurrency } from '../hooks/useCurrency';
 
 interface DashboardHomeProps {
@@ -61,6 +66,120 @@ interface DashboardStats {
   };
 }
 
+interface MetricCardProps {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  iconBgColor: string;
+  valueColor: string;
+  subtitle: string;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ 
+  title, 
+  value, 
+  icon, 
+  iconBgColor, 
+  valueColor, 
+  subtitle 
+}) => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="text-gray-400 text-xs">{title}</p>
+        <p className={`text-xl font-semibold mt-1 ${valueColor}`}>{value}</p>
+      </div>
+      <div className={`${iconBgColor} p-2 rounded-lg`}>
+        {icon}
+      </div>
+    </div>
+    <div className="mt-3 text-xs text-gray-400">
+      {subtitle}
+    </div>
+  </div>
+);
+
+interface ActivityItemProps {
+  icon: React.ReactNode;
+  iconBgColor: string;
+  title: string;
+  subtitle: string;
+  amount?: string;
+  amountColor?: string;
+  badge?: {
+    text: string;
+    bgColor: string;
+    textColor: string;
+  };
+  onClick?: () => void;
+}
+
+const ActivityItem: React.FC<ActivityItemProps> = ({
+  icon,
+  iconBgColor,
+  title,
+  subtitle,
+  amount,
+  amountColor = 'text-white',
+  badge,
+  onClick
+}) => (
+  <div 
+    className="flex justify-between items-center p-2 hover:bg-gray-750 rounded-md cursor-pointer"
+    onClick={onClick}
+  >
+    <div className="flex items-center">
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${iconBgColor}`}>
+        {icon}
+      </div>
+      <div>
+        <div className="flex items-center">
+          <p className="text-white text-sm">{title}</p>
+          {badge && (
+            <span className={`ml-2 text-xs ${badge.bgColor} ${badge.textColor} px-1.5 py-0.5 rounded-full`}>
+              {badge.text}
+            </span>
+          )}
+        </div>
+        <p className="text-gray-400 text-xs">{subtitle}</p>
+      </div>
+    </div>
+    {amount && (
+      <p className={`text-sm font-medium ${amountColor}`}>
+        {amount}
+      </p>
+    )}
+  </div>
+);
+
+interface QuickActionProps {
+  to: string;
+  icon: React.ReactNode;
+  iconBgColor: string;
+  iconColor: string;
+  title: string;
+  description: string;
+}
+
+const QuickAction: React.FC<QuickActionProps> = ({
+  to,
+  icon,
+  iconBgColor,
+  iconColor,
+  title,
+  description
+}) => (
+  <Link to={to} className="bg-gray-750 p-3 rounded-md hover:bg-gray-700 transition-colors">
+    <div className="flex items-center mb-2">
+      <div className={`w-8 h-8 rounded-full ${iconBgColor} flex items-center justify-center mr-2`}>
+        {React.cloneElement(icon as React.ReactElement, { size: 16, className: iconColor })}
+      </div>
+      <p className="text-white text-sm font-medium">{title}</p>
+    </div>
+    <p className="text-gray-400 text-xs">{description}</p>
+  </Link>
+);
+
 const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
@@ -98,11 +217,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     }
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<'week' | 'month' | 'year'>('month');
 
   useEffect(() => {
     fetchDashboardData();
-  }, [user.id, timeframe]);
+  }, [user.id]);
 
   const fetchDashboardData = async () => {
     try {
@@ -326,73 +444,45 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
       
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-400 text-xs">Net Balance</p>
-              <p className={`text-xl font-semibold mt-1 ${stats.totalOwed - stats.totalOwing >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {formatCurrency(stats.totalOwed - stats.totalOwing)}
-              </p>
-            </div>
-            <div className="bg-blue-500/20 p-2 rounded-lg">
-              <Wallet size={20} className="text-blue-400" />
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-gray-400">
-            {stats.totalOwed - stats.totalOwing >= 0 
-              ? "You're in a positive balance position"
-              : "You're in a negative balance position"}
-          </div>
-        </div>
+        <MetricCard
+          title="Net Balance"
+          value={formatCurrency(stats.totalOwed - stats.totalOwing)}
+          icon={<Wallet size={20} className="text-blue-400" />}
+          iconBgColor="bg-blue-500/20"
+          valueColor={stats.totalOwed - stats.totalOwing >= 0 ? 'text-green-400' : 'text-red-400'}
+          subtitle={stats.totalOwed - stats.totalOwing >= 0 
+            ? "You're in a positive balance position"
+            : "You're in a negative balance position"}
+        />
         
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-400 text-xs">Monthly Interest</p>
-              <p className={`text-xl font-semibold mt-1 ${stats.monthlyInterestEarned - stats.monthlyInterestDue >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {formatCurrency(stats.monthlyInterestEarned - stats.monthlyInterestDue)}
-              </p>
-            </div>
-            <div className="bg-purple-500/20 p-2 rounded-lg">
-              <CircleDollarSign size={20} className="text-purple-400" />
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-gray-400">
-            {stats.monthlyInterestEarned > 0 && `Earning: ${formatCurrency(stats.monthlyInterestEarned)}`}
-            {stats.monthlyInterestDue > 0 && stats.monthlyInterestEarned > 0 && ' | '}
-            {stats.monthlyInterestDue > 0 && `Paying: ${formatCurrency(stats.monthlyInterestDue)}`}
-          </div>
-        </div>
+        <MetricCard
+          title="Monthly Interest"
+          value={formatCurrency(stats.monthlyInterestEarned - stats.monthlyInterestDue)}
+          icon={<CircleDollarSign size={20} className="text-purple-400" />}
+          iconBgColor="bg-purple-500/20"
+          valueColor={stats.monthlyInterestEarned - stats.monthlyInterestDue >= 0 ? 'text-green-400' : 'text-red-400'}
+          subtitle={`${stats.monthlyInterestEarned > 0 ? `Earning: ${formatCurrency(stats.monthlyInterestEarned)}` : ''}
+            ${stats.monthlyInterestDue > 0 && stats.monthlyInterestEarned > 0 ? ' | ' : ''}
+            ${stats.monthlyInterestDue > 0 ? `Paying: ${formatCurrency(stats.monthlyInterestDue)}` : ''}`}
+        />
         
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-400 text-xs">Total Owed to You</p>
-              <p className="text-green-400 text-xl font-semibold mt-1">{formatCurrency(stats.totalOwed)}</p>
-            </div>
-            <div className="bg-green-500/20 p-2 rounded-lg">
-              <ArrowUpRight size={20} className="text-green-400" />
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-gray-400">
-            From {stats.debtsByType.oweMe} {stats.debtsByType.oweMe === 1 ? 'person' : 'people'}
-          </div>
-        </div>
+        <MetricCard
+          title="Total Owed to You"
+          value={formatCurrency(stats.totalOwed)}
+          icon={<ArrowUpRight size={20} className="text-green-400" />}
+          iconBgColor="bg-green-500/20"
+          valueColor="text-green-400"
+          subtitle={`From ${stats.debtsByType.oweMe} ${stats.debtsByType.oweMe === 1 ? 'person' : 'people'}`}
+        />
         
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-400 text-xs">Total You Owe</p>
-              <p className="text-red-400 text-xl font-semibold mt-1">{formatCurrency(stats.totalOwing)}</p>
-            </div>
-            <div className="bg-red-500/20 p-2 rounded-lg">
-              <ArrowDownRight size={20} className="text-red-400" />
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-gray-400">
-            To {stats.debtsByType.iOwe} {stats.debtsByType.iOwe === 1 ? 'person' : 'people'}
-          </div>
-        </div>
+        <MetricCard
+          title="Total You Owe"
+          value={formatCurrency(stats.totalOwing)}
+          icon={<ArrowDownRight size={20} className="text-red-400" />}
+          iconBgColor="bg-red-500/20"
+          valueColor="text-red-400"
+          subtitle={`To ${stats.debtsByType.iOwe} ${stats.debtsByType.iOwe === 1 ? 'person' : 'people'}`}
+        />
       </div>
       
       {/* Debt Status and Upcoming Payments */}
@@ -513,44 +603,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           {stats.upcomingInterestPayments.length > 0 ? (
             <div className="space-y-3">
               {stats.upcomingInterestPayments.map((payment) => (
-                <div 
-                  key={`${payment.id}-${payment.due_date}`} 
-                  className="flex justify-between items-center p-2 hover:bg-gray-750 rounded-md cursor-pointer"
+                <ActivityItem
+                  key={`${payment.id}-${payment.due_date}`}
+                  icon={<Calendar size={16} className={payment.type === 'I Owe' ? 'text-red-400' : 'text-green-400'} />}
+                  iconBgColor={`bg-${payment.type === 'I Owe' ? 'red' : 'green'}-500/20`}
+                  title={payment.contact_name}
+                  subtitle={`Due: ${formatDate(payment.due_date)}`}
+                  amount={formatCurrency(payment.amount)}
+                  amountColor={payment.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}
+                  badge={payment.is_overdue ? {
+                    text: 'Overdue',
+                    bgColor: 'bg-red-900',
+                    textColor: 'text-red-300'
+                  } : undefined}
                   onClick={() => handleViewDebt(payment.id)}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                      payment.is_overdue 
-                        ? 'bg-red-500/20' 
-                        : payment.type === 'I Owe' 
-                          ? 'bg-red-500/20' 
-                          : 'bg-green-500/20'
-                    }`}>
-                      {payment.is_overdue ? (
-                        <BadgeAlert size={16} className="text-red-400" />
-                      ) : (
-                        <Calendar size={16} className={payment.type === 'I Owe' ? 'text-red-400' : 'text-green-400'} />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center">
-                        <p className="text-white text-sm">{payment.contact_name}</p>
-                        {payment.is_overdue && (
-                          <span className="ml-2 text-xs bg-red-900 text-red-300 px-1.5 py-0.5 rounded-full">
-                            Overdue
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-xs">Due: {formatDate(payment.due_date)}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${payment.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}`}>
-                      {formatCurrency(payment.amount)}
-                    </p>
-                    <p className="text-gray-400 text-xs">{payment.type}</p>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           ) : (
@@ -587,34 +654,16 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           {stats.recentDebts.length > 0 ? (
             <div className="space-y-3">
               {stats.recentDebts.map((debt) => (
-                <div 
-                  key={debt.id} 
-                  className="flex justify-between items-center p-2 hover:bg-gray-750 rounded-md cursor-pointer"
+                <ActivityItem
+                  key={debt.id}
+                  icon={<DollarSign size={16} className={debt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'} />}
+                  iconBgColor={`bg-${debt.type === 'I Owe' ? 'red' : 'green'}-500/20`}
+                  title={debt.contact_name}
+                  subtitle={`${formatDate(debt.debt_date)}`}
+                  amount={formatCurrency(debt.principal_amount)}
+                  amountColor={debt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}
                   onClick={() => handleViewDebt(debt.id)}
-                >
-                  <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${debt.type === 'I Owe' ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
-                      <DollarSign size={16} className={debt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'} />
-                    </div>
-                    <div>
-                      <p className="text-white text-sm">{debt.contact_name}</p>
-                      <div className="flex items-center">
-                        <p className="text-gray-400 text-xs mr-2">{formatDate(debt.debt_date)}</p>
-                        {debt.status === 'completed' && (
-                          <span className="text-xs bg-green-900 text-green-300 px-1.5 py-0.5 rounded-full">
-                            Completed
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${debt.type === 'I Owe' ? 'text-red-400' : 'text-green-400'}`}>
-                      {formatCurrency(debt.principal_amount)}
-                    </p>
-                    <p className="text-gray-400 text-xs">{debt.interest_rate}% interest</p>
-                  </div>
-                </div>
+                />
               ))}
             </div>
           ) : (
@@ -633,39 +682,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
           {stats.recentActivities.length > 0 ? (
             <div className="space-y-3">
               {stats.recentActivities.map((activity) => (
-                <div 
-                  key={activity.id} 
-                  className="flex justify-between items-center p-2 hover:bg-gray-750 rounded-md cursor-pointer"
+                <ActivityItem
+                  key={activity.id}
+                  icon={<div className={`w-8 h-8 rounded-full bg-${activity.activity_type === 'Interest' ? 'yellow' : 'purple'}-500/20 flex items-center justify-center mr-2`}>
+                    {activity.activity_type === 'Interest' ? (
+                      <TrendingUp size={16} className="text-yellow-400" />
+                    ) : (
+                      <FileText size={16} className="text-purple-400" />
+                    )}
+                  </div>}
+                  iconBgColor={`bg-${activity.activity_type === 'Interest' ? 'yellow' : 'purple'}-500/20`}
+                  title={activity.activity_type}
+                  subtitle={`${activity.debts?.contacts?.name || 'Unknown'} - ${formatDate(activity.activity_date)}`}
+                  amount={activity.activity_type === 'Interest' ? formatCurrency(activity.amount) : undefined}
+                  amountColor={activity.activity_type === 'Interest' ? 'text-yellow-400' : 'text-purple-400'}
                   onClick={() => handleViewDebt(activity.debt_id)}
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mr-2">
-                      {activity.activity_type === 'Interest' ? (
-                        <TrendingUp size={16} className="text-yellow-400" />
-                      ) : (
-                        <FileText size={16} className="text-purple-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-white text-sm">
-                        {activity.activity_type}
-                        {activity.closing_debt && (
-                          <span className="ml-2 text-xs bg-green-900 text-green-300 px-1.5 py-0.5 rounded-full">
-                            Closed Debt
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        {activity.debts?.contacts?.name || 'Unknown'} - {formatDate(activity.activity_date)}
-                      </p>
-                    </div>
-                  </div>
-                  {activity.activity_type === 'Interest' && (
-                    <p className="text-white text-sm font-medium">
-                      {formatCurrency(activity.amount)}
-                    </p>
-                  )}
-                </div>
+                />
               ))}
             </div>
           ) : (
@@ -679,45 +711,41 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
         <h4 className="text-base font-medium text-white mb-3">Quick Actions</h4>
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link to="/contacts?addNew=true" className="bg-gray-750 p-3 rounded-md hover:bg-gray-700 transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mr-2">
-                <Users size={16} className="text-blue-400" />
-              </div>
-              <p className="text-white text-sm font-medium">Add Contact</p>
-            </div>
-            <p className="text-gray-400 text-xs">Create a new contact record</p>
-          </Link>
+          <QuickAction
+            to="/contacts?addNew=true"
+            icon={<Users />}
+            iconBgColor="bg-blue-500/20"
+            iconColor="text-blue-400"
+            title="Add Contact"
+            description="Create a new contact record"
+          />
           
-          <Link to="/debts?addNew=true" className="bg-gray-750 p-3 rounded-md hover:bg-gray-700 transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mr-2">
-                <DollarSign size={16} className="text-green-400" />
-              </div>
-              <p className="text-white text-sm font-medium">Add Debt</p>
-            </div>
-            <p className="text-gray-400 text-xs">Record a new debt or loan</p>
-          </Link>
+          <QuickAction
+            to="/debts?addNew=true"
+            icon={<DollarSign />}
+            iconBgColor="bg-green-500/20"
+            iconColor="text-green-400"
+            title="Add Debt"
+            description="Record a new debt or loan"
+          />
           
-          <Link to="/contacts" className="bg-gray-750 p-3 rounded-md hover:bg-gray-700 transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center mr-2">
-                <Users size={16} className="text-purple-400" />
-              </div>
-              <p className="text-white text-sm font-medium">View Contacts</p>
-            </div>
-            <p className="text-gray-400 text-xs">Manage your contacts</p>
-          </Link>
+          <QuickAction
+            to="/contacts"
+            icon={<Users />}
+            iconBgColor="bg-purple-500/20"
+            iconColor="text-purple-400"
+            title="View Contacts"
+            description="Manage your contacts"
+          />
           
-          <Link to="/debts" className="bg-gray-750 p-3 rounded-md hover:bg-gray-700 transition-colors">
-            <div className="flex items-center mb-2">
-              <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center mr-2">
-                <BarChart4 size={16} className="text-yellow-400" />
-              </div>
-              <p className="text-white text-sm font-medium">View Debts</p>
-            </div>
-            <p className="text-gray-400 text-xs">Manage your debts and loans</p>
-          </Link>
+          <QuickAction
+            to="/debts"
+            icon={<BarChart4 />}
+            iconBgColor="bg-yellow-500/20"
+            iconColor="text-yellow-400"
+            title="View Debts"
+            description="Manage your debts and loans"
+          />
         </div>
       </div>
     </div>

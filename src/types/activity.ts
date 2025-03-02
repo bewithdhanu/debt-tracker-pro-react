@@ -2,7 +2,7 @@ export interface Activity {
   id: string;
   debt_id: string;
   user_id: string;
-  activity_type: 'Interest' | 'Note' | 'Payment' | 'Additional Loan';
+  activity_type: 'Interest' | 'Note';
   amount: number;
   activity_date: string;
   notes?: string;
@@ -13,7 +13,7 @@ export interface Activity {
 }
 
 export interface ActivityFormData {
-  activity_type: 'Interest' | 'Note' | 'Payment' | 'Additional Loan';
+  activity_type: 'Interest' | 'Note';
   amount: number;
   activity_date: string;
   notes?: string;

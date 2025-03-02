@@ -5,7 +5,7 @@ import { Debt, DebtFormData } from '../types/debt';
 import DebtList from './DebtList';
 import DebtForm from './DebtForm';
 import DebtActivities from './DebtActivities';
-import { Plus, ArrowUpDown } from 'lucide-react';
+import { Plus, ArrowUpDown, Database } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ContactSelect } from './ContactSelect';
@@ -403,6 +403,24 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
                 <ArrowUpDown size={16} />
                 {viewMode === 'card' ? 'Table' : 'Cards'}
               </button>
+              {process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await runTestDataInsertion();
+                      toast.success('Test data inserted successfully');
+                      fetchDebts();
+                    } catch (error) {
+                      console.error('Error inserting test data:', error);
+                      toast.error('Failed to insert test data');
+                    }
+                  }}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-md transition-colors text-sm"
+                >
+                  <Database size={16} />
+                  Add Test Data
+                </button>
+              )}
               <button
                 onClick={handleAddDebt}
                 className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md transition-colors text-sm"

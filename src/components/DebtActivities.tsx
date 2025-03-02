@@ -507,7 +507,7 @@ const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack, onE
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <button 
           onClick={onBack}
