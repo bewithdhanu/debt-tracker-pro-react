@@ -1,11 +1,19 @@
 /**
+ * Get the current currency code from localStorage
+ * @returns The current currency code
+ */
+export const getCurrentCurrencyCode = (): string => {
+  return localStorage.getItem('preferredCurrency') || 'USD';
+};
+
+/**
  * Format a number as currency based on the user's preferred currency
  * @param amount The amount to format
  * @returns Formatted currency string
  */
 export const formatCurrency = (amount: number): string => {
-  // Get the user's preferred currency from localStorage, default to USD
-  const currencyCode = localStorage.getItem('preferredCurrency') || 'USD';
+  // Get the user's preferred currency
+  const currencyCode = getCurrentCurrencyCode();
   
   // Define currency formatting options
   const options: Intl.NumberFormatOptions = {
@@ -29,7 +37,7 @@ export const formatCurrency = (amount: number): string => {
  * @returns Currency symbol
  */
 export const getCurrencySymbol = (): string => {
-  const currencyCode = localStorage.getItem('preferredCurrency') || 'USD';
+  const currencyCode = getCurrentCurrencyCode();
   
   // Format a zero amount and extract just the symbol
   const formatted = new Intl.NumberFormat('en-US', {

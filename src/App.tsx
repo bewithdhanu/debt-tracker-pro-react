@@ -10,6 +10,7 @@ import UserProfile from './components/UserProfile';
 import Transactions from './components/Transactions';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { UserProvider } from './contexts/UserContext';
 
 function App() {
   const [authState, setAuthState] = useState<AuthState>({
@@ -111,47 +112,49 @@ function App() {
         />
         
         {authState.user ? (
-          <Routes>
-            <Route path="/" element={
-              <Layout user={authState.user} activePage="dashboard">
-                <DashboardHome user={authState.user} />
-              </Layout>
-            } />
-            <Route path="/debts" element={
-              <Layout user={authState.user} activePage="debts">
-                <Debts user={authState.user} />
-              </Layout>
-            } />
-            <Route path="/debts/:debtId" element={
-              <Layout user={authState.user} activePage="debts">
-                <Debts user={authState.user} />
-              </Layout>
-            } />
-            <Route path="/contacts" element={
-              <Layout user={authState.user} activePage="contacts">
-                <Contacts user={authState.user} />
-              </Layout>
-            } />
-            <Route path="/contacts/:contactId" element={
-              <Layout user={authState.user} activePage="contacts">
-                <Contacts user={authState.user} />
-              </Layout>
-            } />
-            <Route path="/profile" element={
-              <Layout user={authState.user} activePage="profile">
-                <UserProfile 
-                  user={authState.user} 
-                  onBack={() => window.history.back()}
-                />
-              </Layout>
-            } />
-            <Route path="/transactions" element={
-              <Layout user={authState.user} activePage="transactions">
-                <Transactions user={authState.user} />
-              </Layout>
-            } />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <UserProvider initialUser={authState.user}>
+            <Routes>
+              <Route path="/" element={
+                <Layout user={authState.user} activePage="dashboard">
+                  <DashboardHome user={authState.user} />
+                </Layout>
+              } />
+              <Route path="/debts" element={
+                <Layout user={authState.user} activePage="debts">
+                  <Debts user={authState.user} />
+                </Layout>
+              } />
+              <Route path="/debts/:debtId" element={
+                <Layout user={authState.user} activePage="debts">
+                  <Debts user={authState.user} />
+                </Layout>
+              } />
+              <Route path="/contacts" element={
+                <Layout user={authState.user} activePage="contacts">
+                  <Contacts user={authState.user} />
+                </Layout>
+              } />
+              <Route path="/contacts/:contactId" element={
+                <Layout user={authState.user} activePage="contacts">
+                  <Contacts user={authState.user} />
+                </Layout>
+              } />
+              <Route path="/profile" element={
+                <Layout user={authState.user} activePage="profile">
+                  <UserProfile 
+                    user={authState.user} 
+                    onBack={() => window.history.back()}
+                  />
+                </Layout>
+              } />
+              <Route path="/transactions" element={
+                <Layout user={authState.user} activePage="transactions">
+                  <Transactions user={authState.user} />
+                </Layout>
+              } />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </UserProvider>
         ) : (
           <div className="flex items-center justify-center min-h-screen p-4">
             <AuthContainer />

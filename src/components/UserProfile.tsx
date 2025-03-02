@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { ArrowLeft, Save, Key, DollarSign, User as UserIcon, Mail, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 
 interface UserProfileProps {
   user: User;
@@ -40,19 +41,20 @@ const CURRENCY_OPTIONS: CurrencyOption[] = [
   { code: 'MXN', name: 'Mexican Peso', symbol: 'Mex$' },
 ];
 
-const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ user: initialUser, onBack }) => {
+  const { user, currency, updateUser, updateCurrency } = useUser();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'preferences'>('profile');
   const [profileData, setProfileData] = useState<ProfileFormData>({
-    name: user.name || '',
-    email: user.email || '',
+    name: user?.name || '',
+    email: user?.email || '',
   });
   const [passwordData, setPasswordData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
-  const [selectedCurrency, setSelectedCurrency] = useState<string>('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(currency.code);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{
     profile?: string;
@@ -60,64 +62,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
     preferences?: string;
   }>({});
 
-  // Load user preferences from localStorage and Supabase
+  // Update local state when user context changes
   useEffect(() => {
-    // First check localStorage for currency preference
-    const savedCurrency = localStorage.getItem('preferredCurrency');
-    if (savedCurrency) {
-      setSelectedCurrency(savedCurrency);
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        email: user.email || '',
+      });
     }
-    
-    // Fetch profile data from Supabase
-    const fetchProfileData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('name, email, currency_preference')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          // If no profile exists, create one
-          if (error.code === 'PGRST116') {
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert({
-                id: user.id,
-                name: user.name || '',
-                email: user.email || '',
-                currency_preference: savedCurrency || 'USD',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              });
-              
-            if (insertError) {
-              console.error('Error creating profile:', insertError);
-            }
-          } else {
-            console.error('Error fetching profile:', error);
-          }
-        } else if (data) {
-          // Update state with profile data
-          setProfileData({
-            name: data.name || user.name || '',
-            email: data.email || user.email || '',
-          });
-          
-          // If currency preference exists in database, use it (overrides localStorage)
-          if (data.currency_preference) {
-            setSelectedCurrency(data.currency_preference);
-            // Also update localStorage to keep them in sync
-            localStorage.setItem('preferredCurrency', data.currency_preference);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
-      }
-    };
-    
-    fetchProfileData();
-  }, [user.id, user.name, user.email]);
+  }, [user]);
+
+  // Update local state when currency context changes
+  useEffect(() => {
+    setSelectedCurrency(currency.code);
+  }, [currency]);
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -176,37 +134,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateProfileForm()) return;
+    if (!validateProfileForm() || !user) return;
     
     setIsSubmitting(true);
     try {
-      // Update profile in Supabase
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          name: profileData.name,
-          email: profileData.email,
-          updated_at: new Date().toISOString(),
-        });
-        
-      if (profileError) throw profileError;
-      
-      // Update email in auth if it changed
-      if (profileData.email !== user.email) {
-        const { error: emailError } = await supabase.auth.updateUser({
-          email: profileData.email,
-        });
-        
-        if (emailError) throw emailError;
-      }
-      
-      // Update user metadata to include the name
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: { name: profileData.name }
+      await updateUser({
+        name: profileData.name,
+        email: profileData.email,
       });
-      
-      if (metadataError) throw metadataError;
       
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -274,20 +209,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
     
     setIsSubmitting(true);
     try {
-      // Save currency preference to localStorage
-      localStorage.setItem('preferredCurrency', selectedCurrency);
-      
-      // Also save to Supabase profile
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          currency_preference: selectedCurrency,
-          updated_at: new Date().toISOString(),
-        });
-        
-      if (error) throw error;
-      
+      await updateCurrency(selectedCurrency);
       toast.success('Preferences updated successfully');
     } catch (error) {
       console.error('Error updating preferences:', error);
@@ -360,8 +282,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onBack }) => {
               <UserIcon size={24} className="text-blue-400" />
             </div>
             <div>
-              <h3 className="text-white font-medium">{user.name || 'User'}</h3>
-              <p className="text-gray-400 text-sm">{user.email}</p>
+              <h3 className="text-white font-medium">{user?.name || 'User'}</h3>
+              <p className="text-gray-400 text-sm">{user?.email}</p>
             </div>
           </div>
 
