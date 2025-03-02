@@ -9,6 +9,7 @@ import { Plus, Search, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCurrency } from '../hooks/useCurrency';
+import { ContactSelect } from './ContactSelect';
 
 interface DebtsProps {
   user: User;
@@ -23,6 +24,11 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const [currentDebt, setCurrentDebt] = useState<Debt | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    types: [] as ('I Owe' | 'Owe Me')[],
+    statuses: [] as ('active' | 'completed')[],
+    contactId: '' as string
+  });
   const [viewMode, setViewMode] = useState<'card' | 'table'>(() => {
     // Default to card view on mobile, table view on larger screens
     return window.innerWidth < 768 ? 'card' : 'table';
@@ -43,6 +49,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [preselectedContact, setPreselectedContact] = useState<{id: string, name: string} | null>(null);
   const { formatCurrency } = useCurrency();
+  const [selectedContactName, setSelectedContactName] = useState('');
 
   // Handle responsive view mode changes
   useEffect(() => {
@@ -72,7 +79,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
         fetchDebts();
       }
     }
-  }, [user.id, debtId, pagination.currentPage, sortConfig, searchTerm]);
+  }, [user.id, debtId, pagination.currentPage, sortConfig, filters]);
 
   // Check URL for addNew parameter and preselected contact
   useEffect(() => {
@@ -145,54 +152,21 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
         `, { count: 'exact' })
         .eq('user_id', user.id);
       
-      // Add search filter if search term exists
-      if (searchTerm) {
-        // We need to handle the join with contacts table for searching by contact name
-        const contactsQuery = supabase
-          .from('contacts')
-          .select('id')
-          .eq('user_id', user.id)
-          .ilike('name', `%${searchTerm}%`);
-        
-        const { data: contactIds, error: contactError } = await contactsQuery;
-        
-        if (contactError) {
-          throw contactError;
-        }
-        
-        if (contactIds && contactIds.length > 0) {
-          // If we found contacts matching the search term, include them in the filter
-          const contactIdList = contactIds.map(c => c.id);
-          
-          // Build a filter for the contact IDs
-          query = query.or(`contact_id.in.(${contactIdList.join(',')})`)
-            .or(`type.ilike.%${searchTerm}%`)
-            .or(`status.ilike.%${searchTerm}%`);
-            
-          // For numeric fields, we need to be careful with the syntax
-          if (!isNaN(Number(searchTerm))) {
-            query = query.or(`principal_amount.eq.${Number(searchTerm)}`);
-          }
-          
-          // For text fields
-          if (searchTerm.trim() !== '') {
-            query = query.or(`notes.ilike.%${searchTerm}%`);
-          }
-        } else {
-          // If no contacts match, just search the other fields
-          query = query.or(`type.ilike.%${searchTerm}%`)
-            .or(`status.ilike.%${searchTerm}%`);
-            
-          // For numeric fields, we need to be careful with the syntax
-          if (!isNaN(Number(searchTerm))) {
-            query = query.or(`principal_amount.eq.${Number(searchTerm)}`);
-          }
-          
-          // For text fields
-          if (searchTerm.trim() !== '') {
-            query = query.or(`notes.ilike.%${searchTerm}%`);
-          }
-        }
+      // Apply filters
+      if (filters.types.length > 0) {
+        query = query.in('type', filters.types);
+      }
+      if (filters.statuses.length > 0) {
+        query = query.in('status', filters.statuses);
+      }
+      if (filters.contactId) {
+        query = query.eq('contact_id', filters.contactId);
+      }
+
+      // If no filters are applied, show all records
+      if (filters.types.length === 0 && filters.statuses.length === 0) {
+        query = query.in('type', ['I Owe', 'Owe Me'])
+                    .in('status', ['active', 'completed']);
       }
       
       // Add sorting
@@ -359,9 +333,48 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    // Reset to first page when search term changes
+  const handleFilterChange = (filterType: 'types' | 'statuses' | 'contactId', value: string) => {
+    setFilters(prev => {
+      if (filterType === 'types') {
+        const currentTypes = prev.types as ('I Owe' | 'Owe Me')[];
+        if (currentTypes.includes(value as 'I Owe' | 'Owe Me')) {
+          // Don't allow deselecting if it's the last selected type
+          if (currentTypes.length === 1) return prev;
+          return {
+            ...prev,
+            types: currentTypes.filter(t => t !== value)
+          };
+        } else {
+          return {
+            ...prev,
+            types: [...currentTypes, value as 'I Owe' | 'Owe Me']
+          };
+        }
+      } else if (filterType === 'statuses') {
+        const currentStatuses = prev.statuses as ('active' | 'completed')[];
+        if (currentStatuses.includes(value as 'active' | 'completed')) {
+          // Don't allow deselecting if it's the last selected status
+          if (currentStatuses.length === 1) return prev;
+          return {
+            ...prev,
+            statuses: currentStatuses.filter(s => s !== value)
+          };
+        } else {
+          return {
+            ...prev,
+            statuses: [...currentStatuses, value as 'active' | 'completed']
+          };
+        }
+      } else if (filterType === 'contactId') {
+        // Toggle contact filter - if same contact is selected, clear it
+        return {
+          ...prev,
+          contactId: prev.contactId === value ? '' : value
+        };
+      }
+      return prev;
+    });
+    // Reset to first page when filters change
     setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
@@ -404,23 +417,68 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
             </div>
           </div>
 
-          {/* Search */}
-          {!showForm && (
-            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-              <div className="relative flex-grow">
-                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                  <Search size={16} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search debts by contact, type, amount, status or notes..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="w-full pl-9 pr-3 py-1.5 bg-gray-800 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white text-sm"
-                />
-              </div>
+          {/* Filters Row */}
+          <div className="bg-gray-800 px-3 py-2 rounded-lg">
+            <div className="flex flex-col md:flex-row items-center justify-end gap-2">
+              {/* Type Filters */}
+              <button
+                onClick={() => handleFilterChange('types', 'I Owe')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  filters.types.includes('I Owe')
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                I Owe
+              </button>
+              <button
+                onClick={() => handleFilterChange('types', 'Owe Me')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  filters.types.includes('Owe Me')
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Owe Me
+              </button>
+
+              <div className="w-px h-5 bg-gray-700 mx-1 self-center hidden md:block"></div>
+
+              {/* Status Filters */}
+              <button
+                onClick={() => handleFilterChange('statuses', 'active')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  filters.statuses.includes('active')
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => handleFilterChange('statuses', 'completed')}
+                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                  filters.statuses.includes('completed')
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Completed
+              </button>
+
+              <div className="w-px h-5 bg-gray-700 mx-1 self-center hidden md:block"></div>
+
+              {/* Contact Filter */}
+              <ContactSelect
+                selectedContact={filters.contactId ? { id: filters.contactId, name: selectedContactName } : null}
+                onSelect={(contact) => {
+                  setSelectedContactName(contact?.name || '');
+                  handleFilterChange('contactId', contact?.id || '');
+                }}
+                className="w-48"
+              />
             </div>
-          )}
+          </div>
 
           {showForm ? (
             <DebtForm
@@ -443,7 +501,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
               }}
               isLoading={isLoading}
               viewMode={viewMode}
-              searchTerm={searchTerm}
+              searchTerm=""
               onSort={handleSort}
               sortConfig={sortConfig}
               pagination={{
