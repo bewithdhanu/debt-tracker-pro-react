@@ -5,10 +5,9 @@ import { Debt, DebtFormData } from '../types/debt';
 import DebtList from './DebtList';
 import DebtForm from './DebtForm';
 import DebtActivities from './DebtActivities';
-import { Plus, Search, ArrowUpDown } from 'lucide-react';
+import { Plus, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCurrency } from '../hooks/useCurrency';
 import { ContactSelect } from './ContactSelect';
 
 interface DebtsProps {
@@ -23,14 +22,12 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const [showForm, setShowForm] = useState(false);
   const [currentDebt, setCurrentDebt] = useState<Debt | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     types: [] as ('I Owe' | 'Owe Me')[],
     statuses: [] as ('active' | 'completed')[],
     contactId: '' as string
   });
   const [viewMode, setViewMode] = useState<'card' | 'table'>(() => {
-    // Default to card view on mobile, table view on larger screens
     return window.innerWidth < 768 ? 'card' : 'table';
   });
   const [sortConfig, setSortConfig] = useState<{
@@ -48,7 +45,6 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const [showActivities, setShowActivities] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [preselectedContact, setPreselectedContact] = useState<{id: string, name: string} | null>(null);
-  const { formatCurrency } = useCurrency();
   const [selectedContactName, setSelectedContactName] = useState('');
 
   // Handle responsive view mode changes
@@ -501,7 +497,6 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
               }}
               isLoading={isLoading}
               viewMode={viewMode}
-              searchTerm=""
               onSort={handleSort}
               sortConfig={sortConfig}
               pagination={{
