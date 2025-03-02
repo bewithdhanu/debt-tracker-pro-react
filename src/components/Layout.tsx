@@ -4,6 +4,7 @@ import { LogOut, Menu, X, Home, Users, DollarSign, Settings, Receipt } from 'luc
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 
 interface LayoutProps {
   user: User;
@@ -14,12 +15,22 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ user, children, activePage }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { clearUser } = useUser();
 
   const handleSignOut = async () => {
     try {
+      // Clear user state first
+      clearUser();
+      
+      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Show success message
       toast.success('Signed out successfully');
+      
+      // Redirect to login
+      navigate('/', { replace: true });
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);

@@ -5,16 +5,19 @@ export const useCurrency = () => {
   const { currency } = useUser();
 
   const formatCurrency = (amount: number): string => {
-    return formatCurrencyUtil(amount, currency.code);
+    // Ensure we always have a currency code, fallback to USD if not available
+    const currencyCode = currency?.code || 'USD';
+    return formatCurrencyUtil(amount, currencyCode);
   };
 
   const getSymbol = (): string => {
-    return currency.symbol;
+    const currencyCode = currency?.code || 'USD';
+    return getCurrencySymbol(currencyCode);
   };
 
   return {
     formatCurrency,
     getSymbol,
-    currencyCode: currency.code,
+    currencyCode: currency?.code || 'USD',
   };
 }; 

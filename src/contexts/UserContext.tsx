@@ -10,6 +10,7 @@ interface UserContextType {
   };
   updateUser: (updates: Partial<User>) => Promise<void>;
   updateCurrency: (currencyCode: string) => Promise<void>;
+  clearUser: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -28,6 +29,25 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, initialUse
       symbol: getCurrencySymbol(savedCurrency),
     };
   });
+
+  // Subscribe to auth state changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || '',
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Function to get currency symbol
   function getCurrencySymbol(currencyCode: string): string {
@@ -68,6 +88,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, initialUse
     }
   };
 
+  const clearUser = () => {
+    setUser(null);
+  };
+
   const updateCurrency = async (currencyCode: string) => {
     if (!user) return;
 
@@ -98,7 +122,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, initialUse
   };
 
   return (
-    <UserContext.Provider value={{ user, currency, updateUser, updateCurrency }}>
+    <UserContext.Provider value={{ user, currency, updateUser, updateCurrency, clearUser }}>
       {children}
     </UserContext.Provider>
   );

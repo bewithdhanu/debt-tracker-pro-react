@@ -4,10 +4,14 @@ import AuthForm from './AuthForm';
 import { AuthFormData } from '../types/auth';
 import toast from 'react-hot-toast';
 import { Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 
 const AuthContainer: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { updateUser } = useUser();
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
@@ -18,12 +22,14 @@ const AuthContainer: React.FC = () => {
     try {
       if (isLogin) {
         // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: data.email,
           password: data.password,
         });
 
         if (error) throw error;
+
+        // Success message
         toast.success('Signed in successfully!');
       } else {
         // Sign up
