@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, addMonths, isBefore } from 'date-fns';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface DashboardHomeProps {
   user: User;
@@ -62,6 +63,7 @@ interface DashboardStats {
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
   const [stats, setStats] = useState<DashboardStats>({
     totalContacts: 0,
     totalDebts: 0,
@@ -286,15 +288,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({ user }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
   };
 
   // Format date

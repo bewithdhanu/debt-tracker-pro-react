@@ -2,6 +2,7 @@ import React from 'react';
 import { Debt } from '../types/debt';
 import { Edit, Trash2, DollarSign, Calendar, FileText, ChevronLeft, ChevronRight, ArrowUpDown, ExternalLink, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface DebtListProps {
   debts: Debt[];
@@ -38,19 +39,11 @@ const DebtList: React.FC<DebtListProps> = ({
   isCompact = false
 }) => {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
   const currentPage = pagination?.currentPage || 1;
   const totalPages = pagination?.totalPages || 1;
   const onPageChange = pagination?.onPageChange || (() => {});
   
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
-
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

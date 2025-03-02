@@ -8,6 +8,7 @@ import DebtActivities from './DebtActivities';
 import { Plus, Search, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface DebtsProps {
   user: User;
@@ -41,6 +42,7 @@ const Debts: React.FC<DebtsProps> = ({ user }) => {
   const [showActivities, setShowActivities] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [preselectedContact, setPreselectedContact] = useState<{id: string, name: string} | null>(null);
+  const { formatCurrency } = useCurrency();
 
   // Handle responsive view mode changes
   useEffect(() => {

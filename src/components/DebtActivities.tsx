@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, FileText, TrendingUp, Calendar, DollarSign, TrendingDo
 import toast from 'react-hot-toast';
 import { getDaysInMonth, getDate } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface DebtActivitiesProps {
   user: User;
@@ -34,6 +35,7 @@ interface PendingInterestInfo {
 
 const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack, onEditDebt, onDeleteDebt }) => {
   const navigate = useNavigate();
+  const { formatCurrency } = useCurrency();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -458,15 +460,6 @@ const DebtActivities: React.FC<DebtActivitiesProps> = ({ user, debt, onBack, onE
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2
-    }).format(amount);
   };
 
   // Format date

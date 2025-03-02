@@ -7,14 +7,12 @@ export const getCurrentCurrencyCode = (): string => {
 };
 
 /**
- * Format a number as currency based on the user's preferred currency
+ * Format a number as currency using the specified currency code
  * @param amount The amount to format
+ * @param currencyCode The currency code to use for formatting
  * @returns Formatted currency string
  */
-export const formatCurrency = (amount: number): string => {
-  // Get the user's preferred currency
-  const currencyCode = getCurrentCurrencyCode();
-  
+export const formatCurrency = (amount: number, currencyCode: string): string => {
   // Define currency formatting options
   const options: Intl.NumberFormatOptions = {
     style: 'currency',
@@ -33,12 +31,11 @@ export const formatCurrency = (amount: number): string => {
 };
 
 /**
- * Get the currency symbol for the user's preferred currency
+ * Get the currency symbol for a specific currency code
+ * @param currencyCode The currency code to get the symbol for
  * @returns Currency symbol
  */
-export const getCurrencySymbol = (): string => {
-  const currencyCode = getCurrentCurrencyCode();
-  
+export const getCurrencySymbol = (currencyCode: string): string => {
   // Format a zero amount and extract just the symbol
   const formatted = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -48,7 +45,5 @@ export const getCurrencySymbol = (): string => {
   }).format(0);
   
   // Extract the symbol (everything before the first digit or space)
-  const symbol = formatted.replace(/[\d\s.,]/g, '');
-  
-  return symbol;
+  return formatted.replace(/[\d\s.,]/g, '');
 };
