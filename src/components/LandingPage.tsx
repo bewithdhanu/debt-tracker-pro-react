@@ -67,27 +67,33 @@ const LandingPage: React.FC = () => {
     <div className="bg-gray-950 text-white min-h-screen">
       <Helmet>
         <title>DebtTracker - Smart Personal Debt Management</title>
+        <meta name="mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="application-name" content="DebtTracker"/>
+        <meta name="apple-mobile-web-app-title" content="DebtTracker"/>
+        <meta name="theme-color" content="#1e40af"/>
+        <meta name="msapplication-navbutton-color" content="#1e40af"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+        <meta name="msapplication-starturl" content="/"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
         <meta name="description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
         <meta name="keywords" content="debt tracker, personal finance, loan management, debt management, financial tracking" />
-        
-        {/* Open Graph / Facebook */}
+
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://debttracker.app/" />
         <meta property="og:title" content="DebtTracker - Smart Personal Debt Management" />
         <meta property="og:description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
-        <meta property="og:image" content="/og-image.jpg" />
+        <meta property="og:image" content="/images/og-image.jpg" />
 
-        {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://debttracker.app/" />
         <meta property="twitter:title" content="DebtTracker - Smart Personal Debt Management" />
         <meta property="twitter:description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
-        <meta property="twitter:image" content="/og-image.jpg" />
+        <meta property="twitter:image" content="/images/og-image.jpg" />
 
-        {/* Favicon */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#1e40af" />
       </Helmet>
