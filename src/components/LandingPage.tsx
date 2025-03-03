@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { 
   DollarSign, 
   ArrowRight, 
@@ -17,6 +18,18 @@ import {
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import LandingNav from './LandingNav';
+import Logo from './Logo';
+
+// Import images
+const IMAGES = {
+  dashboard: '/images/dashboard.jpg',
+  appScreenshot: '/images/app-screenshot.jpg',
+  testimonials: {
+    sarah: '/images/testimonial-sarah.jpg',
+    michael: '/images/testimonial-michael.jpg',
+    emily: '/images/testimonial-emily.jpg'
+  }
+};
 
 const LandingPage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,7 +41,7 @@ const LandingPage: React.FC = () => {
       setScrollY(window.scrollY);
       
       // Update active section based on scroll position
-      const sections = ['hero', 'features', 'testimonials', 'pricing', 'faq'];
+      const sections = ['hero', 'features', 'testimonials', 'faq'];
       
       for (const section of sections) {
         const element = document.getElementById(section);
@@ -52,22 +65,45 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="bg-gray-950 text-white min-h-screen">
+      <Helmet>
+        <title>DebtTracker - Smart Personal Debt Management</title>
+        <meta name="description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
+        <meta name="keywords" content="debt tracker, personal finance, loan management, debt management, financial tracking" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://debttracker.app/" />
+        <meta property="og:title" content="DebtTracker - Smart Personal Debt Management" />
+        <meta property="og:description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
+        <meta property="og:image" content="/og-image.jpg" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://debttracker.app/" />
+        <meta property="twitter:title" content="DebtTracker - Smart Personal Debt Management" />
+        <meta property="twitter:description" content="Track and manage your personal debts and loans with DebtTracker. Get a clear overview of who owes you money and what you owe others." />
+        <meta property="twitter:image" content="/og-image.jpg" />
+
+        {/* Favicon */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#1e40af" />
+      </Helmet>
+
       {/* Navbar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${scrollY > 50 ? 'bg-gray-900/95 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <div className="bg-blue-600 p-2 rounded-lg mr-2">
-                <DollarSign size={24} className="text-white" />
-              </div>
-              <span className="text-xl font-bold">DebtTracker</span>
-            </div>
+            <Link to="/" className="flex items-center">
+              <Logo size="md" />
+            </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <a href="#features" className={`text-sm font-medium hover:text-blue-400 transition-colors ${activeSection === 'features' ? 'text-blue-400' : 'text-gray-300'}`}>Features</a>
               <a href="#testimonials" className={`text-sm font-medium hover:text-blue-400 transition-colors ${activeSection === 'testimonials' ? 'text-blue-400' : 'text-gray-300'}`}>Testimonials</a>
-              <a href="#pricing" className={`text-sm font-medium hover:text-blue-400 transition-colors ${activeSection === 'pricing' ? 'text-blue-400' : 'text-gray-300'}`}>Pricing</a>
               <a href="#faq" className={`text-sm font-medium hover:text-blue-400 transition-colors ${activeSection === 'faq' ? 'text-blue-400' : 'text-gray-300'}`}>FAQ</a>
               <Link to="/login" className="text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
                 Sign In
@@ -105,13 +141,6 @@ const LandingPage: React.FC = () => {
                 Testimonials
               </a>
               <a 
-                href="#pricing" 
-                className="block text-gray-300 hover:text-white py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Pricing
-              </a>
-              <a 
                 href="#faq" 
                 className="block text-gray-300 hover:text-white py-2"
                 onClick={() => setIsMenuOpen(false)}
@@ -141,9 +170,12 @@ const LandingPage: React.FC = () => {
                   <br />
                   <span className="text-blue-400">Manage</span> Your Money
                 </h1>
-                <p className="text-gray-300 text-lg md:text-xl mb-8">
+                <p className="text-gray-300 text-lg md:text-xl mb-4">
                   A powerful, intuitive platform to track personal loans and debts. 
                   Never lose track of who owes you and what you owe.
+                </p>
+                <p className="text-blue-400 text-lg md:text-xl mb-8 font-semibold">
+                  100% Free. No hidden charges. No credit card required.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
@@ -165,7 +197,7 @@ const LandingPage: React.FC = () => {
               <div className="relative animate-float">
                 <div className="absolute inset-0 bg-blue-600 rounded-lg opacity-10 blur-xl transform -rotate-6"></div>
                 <img 
-                  src="https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+                  src={IMAGES.dashboard}
                   alt="Debt Tracker Dashboard" 
                   className="relative z-10 rounded-lg shadow-2xl border border-gray-800"
                 />
@@ -309,7 +341,7 @@ const LandingPage: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-10 blur-3xl transform rotate-3"></div>
             <div className="relative z-10 rounded-xl overflow-hidden shadow-2xl border border-gray-800">
               <img 
-                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                src={IMAGES.appScreenshot}
                 alt="DebtTracker Dashboard" 
                 className="w-full"
               />
@@ -351,7 +383,7 @@ const LandingPage: React.FC = () => {
                 </p>
                 <div className="flex items-center">
                   <img 
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" 
+                    src={IMAGES.testimonials.sarah}
                     alt="Sarah Johnson" 
                     className="w-12 h-12 rounded-full mr-4 object-cover"
                   />
@@ -377,7 +409,7 @@ const LandingPage: React.FC = () => {
                 </p>
                 <div className="flex items-center">
                   <img 
-                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" 
+                    src={IMAGES.testimonials.michael}
                     alt="Michael Chen" 
                     className="w-12 h-12 rounded-full mr-4 object-cover"
                   />
@@ -403,7 +435,7 @@ const LandingPage: React.FC = () => {
                 </p>
                 <div className="flex items-center">
                   <img 
-                    src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" 
+                    src={IMAGES.testimonials.emily}
                     alt="Emily Rodriguez" 
                     className="w-12 h-12 rounded-full mr-4 object-cover"
                   />
@@ -412,179 +444,6 @@ const LandingPage: React.FC = () => {
                     <p className="text-gray-400 text-sm">Financial Analyst</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-16 md:py-24">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Choose the plan that works best for your needs.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-colors">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold mb-2">Free</h3>
-                <p className="text-gray-400 mb-4">For personal use</p>
-                <div className="flex justify-center items-baseline">
-                  <span className="text-4xl font-bold">$0</span>
-                  <span className="text-gray-400 ml-1">/month</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Up to 10 contacts</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Basic debt tracking</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Simple dashboard</span>
-                </li>
-                <li className="flex items-center text-gray-500">
-                  <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  <span>Advanced reporting</span>
-                </li>
-                <li className="flex items-center text-gray-500">
-                  <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  <span>Data export</span>
-                </li>
-              </ul>
-              <div className="text-center">
-                <Link 
-                  to="/login" 
-                  className="block w-full bg-gray-700 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition-colors"
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-            
-            {/* Pro Plan */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-blue-500 shadow-lg transform md:-translate-y-4 relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                Most Popular
-              </div>
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold mb-2">Pro</h3>
-                <p className="text-gray-400 mb-4">For power users</p>
-                <div className="flex justify-center items-baseline">
-                  <span className="text-4xl font-bold">$9.99</span>
-                  <span className="text-gray-400 ml-1">/month</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Unlimited contacts</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Advanced debt tracking</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Detailed dashboard</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Basic reporting</span>
-                </li>
-                <li className="flex items-center text-gray-500">
-                  <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                  <span>Data export</span>
-                </li>
-              </ul>
-              <div className="text-center">
-                <Link 
-                  to="/login" 
-                  className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-            
-            {/* Business Plan */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-colors">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold mb-2">Business</h3>
-                <p className="text-gray-400 mb-4">For teams & businesses</p>
-                <div className="flex justify-center items-baseline">
-                  <span className="text-4xl font-bold">$29.99</span>
-                  <span className="text-gray-400 ml-1">/month</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-6">
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Unlimited contacts</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Advanced debt tracking</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Advanced dashboard</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Advanced reporting</span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  <span className="text-gray-300">Data export</span>
-                </li>
-              </ul>
-              <div className="text-center">
-                <Link 
-                  to="/login" 
-                  className="block w-full bg-gray-700 hover:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition-colors"
-                >
-                  Get Started
-                </Link>
               </div>
             </div>
           </div>
@@ -602,7 +461,15 @@ const LandingPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* FAQ Item 1 */}
+            {/* FAQ Item 1 - Move the cost question to the top */}
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-xl font-semibold mb-3">Is DebtTracker really free?</h3>
+              <p className="text-gray-300">
+                Yes! DebtTracker is completely free to use. We believe in providing accessible financial tools for everyone. There are no hidden fees, no premium features, and no credit card required.
+              </p>
+            </div>
+            
+            {/* FAQ Item 2 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">Is my financial data secure?</h3>
               <p className="text-gray-300">
@@ -610,7 +477,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             
-            {/* FAQ Item 2 */}
+            {/* FAQ Item 3 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">Can I export my data?</h3>
               <p className="text-gray-300">
@@ -618,7 +485,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             
-            {/* FAQ Item 3 */}
+            {/* FAQ Item 4 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">How do I track interest payments?</h3>
               <p className="text-gray-300">
@@ -626,7 +493,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             
-            {/* FAQ Item 4 */}
+            {/* FAQ Item 5 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">Can I use DebtTracker for business purposes?</h3>
               <p className="text-gray-300">
@@ -634,7 +501,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             
-            {/* FAQ Item 5 */}
+            {/* FAQ Item 6 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">Is there a mobile app available?</h3>
               <p className="text-gray-300">
@@ -642,7 +509,7 @@ const LandingPage: React.FC = () => {
               </p>
             </div>
             
-            {/* FAQ Item 6 */}
+            {/* FAQ Item 7 */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-xl font-semibold mb-3">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-300">
@@ -661,8 +528,11 @@ const LandingPage: React.FC = () => {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between">
               <div className="mb-8 md:mb-0 md:mr-8">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">Ready to Take Control of Your Finances?</h2>
-                <p className="text-blue-100 text-lg max-w-2xl">
+                <p className="text-blue-100 text-lg max-w-2xl mb-2">
                   Join thousands of users who are already managing their debts more effectively with DebtTracker.
+                </p>
+                <p className="text-blue-100 text-lg font-semibold">
+                  Always free, always reliable.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -670,7 +540,7 @@ const LandingPage: React.FC = () => {
                   to="/login" 
                   className="bg-white text-blue-600 hover:bg-gray-100 font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center"
                 >
-                  Get Started <ArrowRight size={18} className="ml-2" />
+                  Get Started Free <ArrowRight size={18} className="ml-2" />
                 </Link>
                 <a 
                   href="#features" 
@@ -689,12 +559,7 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center mb-4">
-                <div className="bg-blue-600 p-2 rounded-lg mr-2">
-                  <DollarSign size={20} className="text-white" />
-                </div>
-                <span className="text-xl font-bold text-white">DebtTracker</span>
-              </div>
+              <Logo size="sm" className="mb-4" />
               <p className="text-gray-400 mb-4">
                 The smart way to manage your personal debts and loans.
               </p>
@@ -715,7 +580,6 @@ const LandingPage: React.FC = () => {
               <h3 className="text-white font-medium mb-4">Product</h3>
               <ul className="space-y-2">
                 <li><a href="#features" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Roadmap</a></li>
                 <li><a href="#faq" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
               </ul>

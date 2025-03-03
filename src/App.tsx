@@ -13,6 +13,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { UserProvider, useUser } from './contexts/UserContext';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Wrap the main app content in this component to use the user context
 const AppContent = () => {
@@ -127,14 +128,16 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-950">
-        <Toaster position="top-right" />
-        <UserProvider initialUser={initialUser}>
-          <AppContent />
-        </UserProvider>
-      </div>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <div className="min-h-screen bg-gray-950">
+          <Toaster position="top-right" />
+          <UserProvider initialUser={initialUser}>
+            <AppContent />
+          </UserProvider>
+        </div>
+      </Router>
+    </HelmetProvider>
   );
 }
 
