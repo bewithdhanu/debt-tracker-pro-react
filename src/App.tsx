@@ -11,6 +11,8 @@ import Transactions from './components/Transactions';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { UserProvider, useUser } from './contexts/UserContext';
+import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
 
 // Wrap the main app content in this component to use the user context
 const AppContent = () => {
@@ -82,9 +84,11 @@ const AppContent = () => {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   ) : (
-    <div className="flex items-center justify-center min-h-screen p-4">
-      <AuthContainer />
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
